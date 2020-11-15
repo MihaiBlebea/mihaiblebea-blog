@@ -1,0 +1,132 @@
+{{ $article := .Params.Article }}
+{{ $articles := .Params.Articles }}
+
+<html data-theme="light">
+<head>
+    <title>{{ .Params.Article.Title }} | MihaiBlebea.com</title>
+
+    {{ template "head" }}
+
+    <!-- Share on Linkedin -->
+    <meta property='og:title' content='{{ $article.Title }}'/>
+    <meta property='og:image' content='{{ $article.Image }}'/>
+    <meta property='og:description' content='{{ $article.Summary }}'/>
+    <meta property='og:url' content='https://mihaiblebea.com/article/{{ $article.Slug }}'/>
+    <meta property='author' content='Mihai Blebea'/>
+    <meta name="publish_date" property="og:publish_date" content="{{ $article.Published }}">
+
+    <!-- Share on Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:site" content="@MBlebea" />
+    <meta property="twitter:creator" content="@MBlebea" />
+    <meta property="twitter:title" content="{{ $article.Title }}">
+    <meta property="twitter:description" content="{{ $article.Summary }}">
+    <meta property="twitter:image" content="{{ $article.Image }}">
+    <meta property='twitter:url' content='https://mihaiblebea.com/article/{{ $article.Slug }}'/>
+
+    <link rel="stylesheet" href="/static/css/footer-social.css"/>
+</head>
+<body>
+    {{ template "navbar" }}
+    
+    <div class="container my-5">
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8">
+                <a class="mb-4 no-underline d-block" href="/">
+                    <i class="fa fa-arrow-left pl-0" aria-hidden="true"></i> Blog
+                </a>
+
+                <h1 class="mb-4">{{ $article.Title }}</h1>
+
+                <div class="mb-4">
+                    {{ template "card_author" }}
+                </div>
+
+                <img class="mb-3 w-100" src="{{ $article.Image }}" />
+
+                <!-- Article details section -->
+                <div class="row justify-content-between mb-3 mb-sm-4">
+                    <strong class="col-12 col-sm-6">Published {{ $article.GetFormatPublished }}</strong>
+
+                    <div class="col-12 col-sm-6 text-left text-sm-right">
+                        {{ range $tag := $article.Tags }}
+
+                            <a href="/tag/{{ $tag }}" class="tag mr-1">
+                                #{{ $tag }}
+                            </a>
+
+                        {{ end }}
+                    </div>
+                </div>
+                <!-- Article details section -->
+
+                <div class="text-article mb-4">{{ $article.HTML }}</div>
+
+                <div class="mb-3">
+                    {{ template "lead_box" }}
+                </div>
+
+                <div id="disqus_thread"></div>
+            </div>
+        </div>
+
+        {{ if $articles }}
+
+            <div class="row justify-content-center">
+                <div class="col-12">
+                    <h3 class="mb-3">More related content</h3> 
+                    <div class="row">
+                        {{ range $art := $articles }}
+
+                            <div class="col-md-4 mb-3 mb-md-0">
+                                {{ template "card_article" $art }}
+                            </div>
+
+                        {{ end }}
+                    </div>
+                </div>
+            </div>
+
+        {{ end }}
+    </div>
+
+    <script>
+
+    /**
+    *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+    *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+    var disqus_config = function () {
+        this.page.url = window.location.href;  // Replace PAGE_URL with your page's canonical URL variable
+        this.page.identifier = window.location.pathname; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+    };
+
+    (function() { // DON'T EDIT BELOW THIS LINE
+    var d = document, s = d.createElement('script');
+    s.src = 'https://mihaiblebea.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+    <!-- Share article footer -->
+    <script src="/static/js/footer-social.js"></script>
+    <script>
+        const linkedinUrl = '{{ $article.GetShareOnLinkedinLink }}'
+        const facebookUrl = '{{ $article.GetShareOnFacebookLink }}'
+        const twitterUrl = '{{ $article.GetShareOnTwitterLink }}'
+        const footerId = 'social-footer'
+
+        let social = new SocialFooter({
+            linkedin: linkedinUrl,
+            facebook: facebookUrl,
+            twitter: twitterUrl,
+            elementId: footerId
+        })
+
+        window.onscroll = function() { social.scrolling() }
+    </script>
+
+    {{ template "footer" }}
+</body>
+</html>

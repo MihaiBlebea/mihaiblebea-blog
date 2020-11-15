@@ -1,0 +1,37 @@
+<html data-theme="dark">
+<head>
+    <title>👋Contact | MihaiBlebea.com</title>
+
+    {{ template "head" }}
+    <style>
+    .contact-img {
+        max-width: 450px;
+        display: block;
+        margin: auto;
+    }
+    </style>
+</head>
+<body>
+    {{ template "navbar" }}
+    
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="mb-4">Contact</h1>
+
+                <div class="mb-4">
+                    {{ template "card_author" }}
+                </div>
+                
+                <img class="contact-img" src="/static/img/contact.png" />
+                <a class="text-center d-block" href="mailto:mihaiserban.blebea@gmail.com" target="_blank">
+                    <button type="button" class="btn btn-primary">Send Email</button>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+
+    {{ template "footer" }}
+</body>
+</html>

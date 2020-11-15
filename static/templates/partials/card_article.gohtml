@@ -1,0 +1,46 @@
+{{ define "card_article" }}
+<div class="card">
+    <a href="/article/{{ .Slug }}" class="position-relative">
+        <div class="position-absolute text-center card-details-overlay">
+            <div><i class="fa fa-newspaper-o" aria-hidden="true"></i> {{ .GetFormatPublished }}</div>
+            <div><i class="fa fa-user pl-0" aria-hidden="true"></i> Mihai Blebea</div>
+        </div>
+
+        <img src="{{ .Image }}" class="card-img-top" alt="...">
+    </a>
+    <div class="card-body">
+        {{ if .IsDraft }}
+
+            <p class="text-muted mb-1">Draft post</p>
+
+        {{ end }}
+
+        <h3><strong>{{ .Title }}</strong></h3>
+        
+        <p>
+            {{ range $tag := .Tags }}
+
+                <a href="/tag/{{ $tag }}" class="mr-1 tag">#{{ $tag }}</a>
+
+            {{ end }}
+        </p>
+
+        <p class="card-text">
+            {{ .Summary }}... 
+            <a class="d-block" href="/article/{{ .Slug }}">Read more</a>
+        </p>
+
+        <p class="mb-0">Share on</p>
+        
+        <a class="no-underline" href="{{ .GetShareOnLinkedinLink }}" target="_blank">
+            <i class="fa fa-linkedin-square mr-2" aria-hidden="true"></i>
+        </a>
+        <a class="no-underline" href="{{ .GetShareOnFacebookLink }}" target="_blank">
+            <i class="fa fa-facebook-square mr-2" aria-hidden="true"></i>
+        </a>
+        <a class="no-underline" href="{{ .GetShareOnTwitterLink }}" target="_blank">
+            <i class="fa fa-twitter-square" aria-hidden="true"></i>
+        </a>
+    </div>
+</div>
+{{ end }}
