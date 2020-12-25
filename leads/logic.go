@@ -1,65 +1,47 @@
 package leads
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
-	"net/http"
+	"fmt"
 	"strings"
-)
 
-// Errors _
-var (
-	ErrRequestIssue = errors.New("Something went wrong with the request")
+	"github.com/tw1nk/gochimp3"
 )
 
 type service struct {
-	url string
+	client *gochimp3.API
+	listID string
 }
 
 // New returns a new leads service
-func New(url string) Service {
-	return &service{url}
+func New(apiKey, listID string) Service {
+	client := gochimp3.New(apiKey)
+	return &service{client, listID}
 }
 
-func (s *service) Save(name, email string) error {
-	body := struct {
-		Name  string
-		Email string
-	}{
-		Name:  name,
-		Email: email,
-	}
-
-	b, err := json.Marshal(body)
+func (s *service) Store(email string) error {
+	list, err := s.client.GetList(s.listID, nil)
 	if err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", s.url, bytes.NewBuffer(b))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
+	fmt.Println(list)
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
+	req := &gochimp3.MemberRequest{
+		EmailAddress: email,
+		Status:       "subscribed",
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return ErrRequestIssue
+	if _, err := list.CreateMember(req); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (s *service) FormatName(name string) string {
+func (s *service) formatName(name string) string {
 	return strings.Title(name)
 }
 
-func (s *service) FormatEmail(email string) string {
+func (s *service) formatEmail(email string) string {
 	return strings.ToLower(email)
 }

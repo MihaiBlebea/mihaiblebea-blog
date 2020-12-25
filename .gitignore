@@ -1,2 +1,5 @@
 blog
 go-broadcast
+.vscode
+assets
+.env

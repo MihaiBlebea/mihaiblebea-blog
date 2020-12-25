@@ -1,12 +1,16 @@
+IMAGE := mihaiblebea-blog
+TAG := 0.1
 
-setup: run
+setup: build run
 
 bundle:
-	go-bindata -o=assets/bindata.go --pkg=assets templates/... markdown/...
-
-run:
-	export HTTP_PORT=8099 && \
-	go run .
+	go-bindata -o=assets/bindata.go --pkg=assets static/templates/... static/markdown/...
 
 build:
-	export GOOS=linux && go build -o ./blog .
+	docker build -t ${IMAGE}:${TAG} .
+
+run:
+	docker run -d --rm --name ${IMAGE} --env-file=.env -p 8099:8099 ${IMAGE}:${TAG}
+
+remove:
+	docker stop ${IMAGE} && docker rm ${IMAGE}

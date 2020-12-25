@@ -91,12 +91,7 @@ func (h *httpServer) TemplateHandler(w http.ResponseWriter, r *http.Request) {
 func (h *httpServer) PostLeadHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	name := h.leadService.FormatName(
-		r.Form.Get("name"),
-	)
-	email := h.leadService.FormatEmail(
-		r.Form.Get("email"),
-	)
+	email := r.Form.Get("email")
 
 	path := r.URL.Path
 	reqID := h.requestID(8)
@@ -104,7 +99,6 @@ func (h *httpServer) PostLeadHandler(w http.ResponseWriter, r *http.Request) {
 	h.logger.WithFields(logrus.Fields{
 		"Url":   path,
 		"Id":    reqID,
-		"Name":  name,
 		"Email": email,
 	}).Info("Request started")
 	start := time.Now()
@@ -115,7 +109,7 @@ func (h *httpServer) PostLeadHandler(w http.ResponseWriter, r *http.Request) {
 		"Duration": time.Since(start),
 	}).Info("Request ended")
 
-	err := h.leadService.Save(name, email)
+	err := h.leadService.Store(email)
 	if err != nil {
 		h.logger.Error(err)
 	}
@@ -123,12 +117,6 @@ func (h *httpServer) PostLeadHandler(w http.ResponseWriter, r *http.Request) {
 	page, err := h.pageService.LoadTemplate(path)
 	if err != nil {
 		h.logger.Error(err)
-	}
-
-	page.Params = struct {
-		Name string
-	}{
-		Name: name,
 	}
 
 	err = page.Render(w)

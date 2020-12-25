@@ -9,6 +9,9 @@ WORKDIR /tmp/go-sample-app
 COPY go.mod .
 COPY go.sum .
 
+# Install the go-bindata package to bundle the assets
+RUN go get -u github.com/jteeuwen/go-bindata/...
+
 RUN go mod download
 
 COPY . .
@@ -16,7 +19,15 @@ COPY . .
 # Unit tests
 RUN CGO_ENABLED=0 go test -v
 
+ENV HTTP_PORT=$HTTP_PORT
+ENV MAILCHIMP_API_KEY=$MAILCHIMP_API_KEY
+ENV MAILCHIMP_LIST_ID=$MAILCHIMP_LIST_ID
+
+RUN env
+
 # Build the Go app
+RUN go generate
+
 RUN go build -o ./out/go-sample-app .
 
 # Start fresh from a smaller image
@@ -31,7 +42,11 @@ COPY --from=build_base /tmp/go-sample-app/out/go-sample-app /app/blog
 # Copy the static folder and get all the static files inside it
 COPY ./static /app/static
 
-EXPOSE ${HTTP_PORT}
+ENV HTTP_PORT=$HTTP_PORT
+ENV MAILCHIMP_API_KEY=$MAILCHIMP_API_KEY
+ENV MAILCHIMP_LIST_ID=$MAILCHIMP_LIST_ID
+
+EXPOSE $HTTP_PORT
 
 RUN chmod +x /app/blog
 

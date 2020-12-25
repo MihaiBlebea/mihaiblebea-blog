@@ -13,6 +13,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//go:generate go-bindata -o=assets/bindata.go --pkg=assets static/templates/... static/markdown/...
+
 func main() {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
@@ -23,7 +25,10 @@ func main() {
 	)
 	pageService := page.New(postService, cache, logger)
 
-	leadService := leads.New(os.Getenv("LIST_URL"))
+	leadService := leads.New(
+		os.Getenv("MAILCHIMP_API_KEY"),
+		os.Getenv("MAILCHIMP_LIST_ID"),
+	)
 
 	server := api.NewHTTPServer(pageService, leadService, logger)
 
