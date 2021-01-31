@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -12,6 +13,16 @@ import (
 	"github.com/MihaiBlebea/blog/go-broadcast/page"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+)
+
+// Private endpoint paths
+var private = []string{
+	"/lead",
+}
+
+// Custom errors
+var (
+	ErrPrivatePath = errors.New("Path is private")
 )
 
 type httpServer struct {
@@ -76,6 +87,21 @@ func (h *httpServer) TemplateHandler(w http.ResponseWriter, r *http.Request) {
 		"Id":       reqID,
 		"Duration": time.Since(start),
 	}).Info("Request ended")
+
+	// Check if the path requested is not on the private list
+	for _, p := range private {
+		if p == path {
+			h.logger.Error(ErrPrivatePath)
+			page, _ := h.pageService.LoadErrorPage(ErrPrivatePath)
+
+			err := page.Render(w)
+			if err != nil {
+				h.logger.Error(err)
+			}
+
+			return
+		}
+	}
 
 	page, err := h.pageService.LoadTemplate(path)
 	if err != nil {

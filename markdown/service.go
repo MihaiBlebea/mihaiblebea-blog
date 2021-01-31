@@ -1,12 +1,11 @@
-package post
+package markdown
 
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"html/template"
-	"io/ioutil"
 
+	"github.com/MihaiBlebea/blog/go-broadcast/postrepo"
 	"github.com/alecthomas/chroma/formatters/html"
 	"github.com/yuin/goldmark"
 	highlighting "github.com/yuin/goldmark-highlighting"
@@ -21,13 +20,17 @@ var (
 	ErrPostNotPublished = errors.New("Post was not published yet")
 )
 
+// Service is a service that transforms string content into Post models
+type Service interface {
+	ParsePost(content string) (*postrepo.Post, error)
+}
+
 type markdown struct {
 	parser goldmark.Markdown
-	isDev  bool
 }
 
 // New returns a new markdown service
-func New(isDev bool) Service {
+func New() Service {
 	md := goldmark.New(
 		goldmark.WithExtensions(
 			meta.Meta,
@@ -48,49 +51,16 @@ func New(isDev bool) Service {
 		),
 	)
 
-	return &markdown{md, isDev}
+	return &markdown{md}
 }
 
-func (m *markdown) GetAllPosts() (*[]Post, error) {
-	files, err := ioutil.ReadDir("./static/markdown")
-	if err != nil {
-		return &[]Post{}, err
-	}
-
-	var posts []Post
-	for _, f := range files {
-		p, err := m.buildPost(
-			fmt.Sprintf(
-				"./static/markdown/%s",
-				f.Name(),
-			),
-		)
-		if err == ErrPostNotPublished {
-			continue
-		}
-
-		if err != nil {
-			return &posts, err
-		}
-
-		posts = append(posts, *p)
-	}
-
-	return &posts, nil
-}
-
-func (m *markdown) buildPost(filePath string) (*Post, error) {
+func (m *markdown) ParsePost(content string) (*postrepo.Post, error) {
 	context := parser.NewContext()
 
-	b, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return &Post{}, err
-	}
-
 	var buf bytes.Buffer
-	err = m.parser.Convert(b, &buf, parser.WithContext(context))
+	err := m.parser.Convert([]byte(content), &buf, parser.WithContext(context))
 	if err != nil {
-		return &Post{}, err
+		return &postrepo.Post{}, err
 	}
 
 	params := meta.Get(context)
@@ -99,29 +69,25 @@ func (m *markdown) buildPost(filePath string) (*Post, error) {
 	if _, ok := params["Published"]; ok != false {
 		published, ok = params["Published"].(string)
 		if ok != true {
-			return &Post{}, ErrInvalidType
+			return &postrepo.Post{}, ErrInvalidType
 		}
-	}
-
-	if published == "" && m.isDev == false {
-		return &Post{}, ErrPostNotPublished
 	}
 
 	title, ok := params["Title"].(string)
 	if ok != true {
-		return &Post{}, ErrInvalidType
+		return &postrepo.Post{}, ErrInvalidType
 	}
 
 	slug, ok := params["Slug"].(string)
 	if ok != true {
-		return &Post{}, ErrInvalidType
+		return &postrepo.Post{}, ErrInvalidType
 	}
 
 	var image string
 	if _, ok := params["Image"]; ok != false {
 		image, ok = params["Image"].(string)
 		if ok != true {
-			return &Post{}, ErrInvalidType
+			return &postrepo.Post{}, ErrInvalidType
 		}
 	}
 
@@ -129,16 +95,16 @@ func (m *markdown) buildPost(filePath string) (*Post, error) {
 	if _, ok := params["Summary"]; ok != false {
 		summary, ok = params["Summary"].(string)
 		if ok != true {
-			return &Post{}, ErrInvalidType
+			return &postrepo.Post{}, ErrInvalidType
 		}
 	}
 
 	tags, err := castTagsToString(params)
 	if err != nil {
-		return &Post{}, err
+		return &postrepo.Post{}, err
 	}
 
-	p := &Post{
+	p := &postrepo.Post{
 		Title:   title,
 		Slug:    slug,
 		Summary: summary,

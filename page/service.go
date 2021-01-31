@@ -4,4 +4,5 @@ package page
 type Service interface {
 	LoadTemplate(URL string) (*Page, error)
 	LoadStaticFile(URL string) ([]byte, error)
+	LoadErrorPage(err error) (*Page, error)
 }
